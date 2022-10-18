@@ -2,10 +2,14 @@
 
 from flask import Flask
 import os
+import enum
 from flask import request
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from sqlalchemy import Integer, ForeignKey, String, Column, Table
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 app = Flask(__name__)
@@ -16,7 +20,32 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://nrjdztyzcfvwlk:d767f32cd3f
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-class User(db.Model):
+Base = declarative_base()
+
+class ConnectionStatus(enum.Enum):
+    APPROVED = "Approved"
+    PENDING = "Pending"
+    REJECTED = "Rejected"
+
+user_instrument = db.Table('user_instrument', Base.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True),
+    db.Column('plays_or_needs', db.Integer)
+)
+
+user_genre = db.Table('user_genre', Base.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True)
+)
+
+user_connection = db.Table('user_connection', Base.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    # db.Column(db.Enum(ConnectionStatus))
+)
+
+class User(Base):
+    __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     display_email = db.Column(db.String(255))
@@ -26,7 +55,7 @@ class User(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     instruments = db.relationship('Instrument', secondary=user_instrument, lazy='dynamic', backref=db.backref('users', lazy=True))
     genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
-    connections = db.relationship('User', secondary=user_connection, lazy='dynamic', backref=db.backref('connections', lazy=True))
+    connections = db.relationship('User', secondary=user_connection, primaryjoin=id == user_connection.c.user_id, secondaryjoin=id == user_connection.c.friend_id, lazy='dynamic', backref=db.backref('users', lazy=True))
 
     def __init__(self, name, display_email, picture_url, about, zipcode):
         self.name = name
@@ -35,7 +64,8 @@ class User(db.Model):
         self.about = about
         self.zipcode = zipcode
 
-class Instrument(db.Model):
+class Instrument(Base):
+    __tablename__ = "instrument"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
@@ -43,13 +73,9 @@ class Instrument(db.Model):
     def __init__(self, name):
         self.name = name
 
-user_instrument = db.Table('user_instrument',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True),
-    db.Column('plays_or_needs', db.Integer)
-)
 
-class Genre(db.Model)
+class Genre(Base):
+    __tablename__ = "genre"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
@@ -57,22 +83,21 @@ class Genre(db.Model)
     def __init__(self, name):
         self.name = name
 
-user_genre = db.Table('user_genre',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True)
-)
 
-user_connection = db.Table('user_connection',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('status', db.Integer)
-)
+
 class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+
+class InstrumentSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Instrument
+
+instrument_schema = InstrumentSchema()
+instruments_schema = InstrumentSchema(many=True)
 
 
 
@@ -94,6 +119,15 @@ def create_user():
     db.session.add(user)
     db.session.commit()
     return user_schema.jsonify(user)
+
+@app.route('/instruments/', methods=['POST'])
+def create_instrument():
+    name = request.json.get('name', '')
+    instrument = Instrument(name=name)
+
+    db.session.add(instrument)
+    db.session.commit()
+    return instrument_schema.jsonify(instrument)
 
 
 

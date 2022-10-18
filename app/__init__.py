@@ -27,10 +27,14 @@ class ConnectionStatus(enum.Enum):
     PENDING = "Pending"
     REJECTED = "Rejected"
 
+class PlaysOrNeeds(enum.Enum):
+    PLAYS = "Plays"
+    NEEDS = "Needs"
+
 user_instrument = db.Table('user_instrument', Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True),
-    db.Column('plays_or_needs', db.Integer)
+    db.Column('plays_or_needs', db.Enum(PlaysOrNeeds))
 )
 
 user_genre = db.Table('user_genre', Base.metadata,
@@ -41,7 +45,7 @@ user_genre = db.Table('user_genre', Base.metadata,
 user_connection = db.Table('user_connection', Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    # db.Column(db.Enum(ConnectionStatus))
+    db.Column('status', db.Enum(ConnectionStatus))
 )
 
 class User(Base):

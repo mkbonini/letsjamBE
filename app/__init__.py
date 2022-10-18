@@ -24,7 +24,9 @@ class User(db.Model):
     about = db.Column(db.String(255))
     zipcode = db.Column(db.String(255))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
-
+    instruments = db.relationship('Instrument', secondary=user_instrument, lazy='dynamic', backref=db.backref('users', lazy=True))
+    genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
+    connections = db.relationship('User', secondary=user_connection, lazy='dynamic', backref=db.backref('connections', lazy=True))
 
     def __init__(self, name, display_email, picture_url, about, zipcode):
         self.name = name
@@ -47,12 +49,33 @@ user_instrument = db.Table('user_instrument',
     db.Column('plays_or_needs', db.Integer)
 )
 
+class Genre(db.Model)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, name):
+        self.name = name
+
+user_genre = db.Table('user_genre',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True)
+)
+
+user_connection = db.Table('user_connection',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('status', db.Integer)
+)
 class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
+
+
+
 
 @app.route('/users/<int:user_id>/')
 def show_user(user_id):

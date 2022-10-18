@@ -4,3 +4,4 @@ Flask-SQLAlchemy
 pytest
 flask-marshmallow
 marshmallow-sqlalchemy
+gunicorn

@@ -150,7 +150,6 @@ def create_user():
     about = request.json.get('about', '')
     zipcode = request.json.get('zipcode', '')
     user = User(name=name, display_email=display_email, picture_url=picture_url, about=about, zipcode=zipcode)
-    breakpoint()
     db.session.add(user)
     db.session.commit()
     return user_schema.jsonify(user)

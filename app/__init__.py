@@ -39,8 +39,12 @@ class PlaysOrNeeds(enum.Enum):
 
 user_instrument = db.Table('user_instrument', Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True),
-    db.Column('plays_or_needs', db.Enum(PlaysOrNeeds))
+    db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True)
+)
+
+user_needs_instrument = db.Table('user_needs_instrument', Base.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('needs_instrument_id', db.Integer, db.ForeignKey('needs_instrument.id'), primary_key=True)
 )
 
 user_genre = db.Table('user_genre', Base.metadata,
@@ -64,6 +68,7 @@ class User(Base):
     zipcode = db.Column(db.String(255))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     instruments = db.relationship('Instrument', secondary=user_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
+    needs_instruments = db.relationship('NeedsInstrument', secondary=user_needs_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
     genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
     connections = db.relationship('User', secondary=user_connection, primaryjoin=id == user_connection.c.user_id, secondaryjoin=id == user_connection.c.friend_id, lazy='dynamic', backref=db.backref('users', lazy=True))
 
@@ -76,6 +81,15 @@ class User(Base):
 
 class Instrument(Base):
     __tablename__ = "instrument"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, name):
+        self.name = name
+
+class NeedsInstrument(Base):
+    __tablename__ = "needs_instrument"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
@@ -125,7 +139,6 @@ genres_schema = GenreSchema(many=True)
 
 @app.route('/users/<int:user_id>/')
 def show_user(user_id):
-    breakpoint()
     user = db.session.get(User, user_id)
     return user_schema.jsonify(user)
 
@@ -146,8 +159,9 @@ def create_user():
 def create_instrument():
     name = request.json.get('name', '')
     instrument = Instrument(name=name)
-
+    needs_instrument = NeedsInstrument(name=name)
     db.session.add(instrument)
+    db.session.add(needs_instrument)
     db.session.commit()
     return instrument_schema.jsonify(instrument)
 
@@ -162,15 +176,16 @@ def create_genre():
 
 @app.route('/users/<int:user_id>/instruments/<int:instrument_id>', methods=['POST'])
 def create_user_instrument(user_id, instrument_id):
-    plays_or_needs = request.json.get('plays_or_needs', '')
-    # data = user_instrument(user_id=user_id, instrument_id=instrument_id, plays_or_needs=plays_or_needs)
-
-    # db.session.add(data)
-
-    ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id, plays_or_needs=plays_or_needs)
+    ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id)
     db.engine.execute(ins)
     db.session.commit()
-    breakpoint()
+    return user_instrument_schema.jsonify(ins)
+
+@app.route('/users/<int:user_id>/needs_instruments/<int:instrument_id>', methods=['POST'])
+def create_user_needs_instrument(user_id, instrument_id):
+    ins = user_needs_instrument.insert().values(user_id=user_id, instrument_id=instrument_id)
+    db.engine.execute(ins)
+    db.session.commit()
     return user_instrument_schema.jsonify(ins)
 
 

@@ -24,7 +24,7 @@ Base = declarative_base()
 engine = create_engine(db_uri)
 metadata = MetaData(engine)
 metadata.reflect()
-table = metadata.tables["user_instrument"]
+# table = metadata.tables["user_instrument"]
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -150,7 +150,7 @@ def create_user():
     about = request.json.get('about', '')
     zipcode = request.json.get('zipcode', '')
     user = User(name=name, display_email=display_email, picture_url=picture_url, about=about, zipcode=zipcode)
-
+    breakpoint()
     db.session.add(user)
     db.session.commit()
     return user_schema.jsonify(user)

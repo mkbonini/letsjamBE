@@ -7,20 +7,26 @@ from flask import request
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from sqlalchemy import Integer, ForeignKey, String, Column, Table
+from sqlalchemy import create_engine, MetaData, Integer, ForeignKey, String, Column, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Session, sessionmaker
 
 
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://nrjdztyzcfvwlk:d767f32cd3f5645fb1dbf2322b6b5f93a3ba723cc625bcdc67f7cce3db369d16@ec2-44-199-9-102.compute-1.amazonaws.com:5432/d5i6c3pfolni3l"
-
+db_uri = "postgresql://nrjdztyzcfvwlk:d767f32cd3f5645fb1dbf2322b6b5f93a3ba723cc625bcdc67f7cce3db369d16@ec2-44-199-9-102.compute-1.amazonaws.com:5432/d5i6c3pfolni3l"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 Base = declarative_base()
+engine = create_engine(db_uri)
+metadata = MetaData(engine)
+metadata.reflect()
+table = metadata.tables["user_instrument"]
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class ConnectionStatus(enum.Enum):
     APPROVED = "Approved"
@@ -57,7 +63,7 @@ class User(Base):
     about = db.Column(db.String(255))
     zipcode = db.Column(db.String(255))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
-    instruments = db.relationship('Instrument', secondary=user_instrument, lazy='select', backref=db.backref('users', lazy=True))
+    instruments = db.relationship('Instrument', secondary=user_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
     genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
     connections = db.relationship('User', secondary=user_connection, primaryjoin=id == user_connection.c.user_id, secondaryjoin=id == user_connection.c.friend_id, lazy='dynamic', backref=db.backref('users', lazy=True))
 
@@ -119,6 +125,7 @@ genres_schema = GenreSchema(many=True)
 
 @app.route('/users/<int:user_id>/')
 def show_user(user_id):
+    breakpoint()
     user = db.session.get(User, user_id)
     return user_schema.jsonify(user)
 

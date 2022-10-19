@@ -7,20 +7,26 @@ from flask import request
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from sqlalchemy import Integer, ForeignKey, String, Column, Table
+from sqlalchemy import create_engine, MetaData, Integer, ForeignKey, String, Column, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Session, sessionmaker
 
 
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://nrjdztyzcfvwlk:d767f32cd3f5645fb1dbf2322b6b5f93a3ba723cc625bcdc67f7cce3db369d16@ec2-44-199-9-102.compute-1.amazonaws.com:5432/d5i6c3pfolni3l"
-
+db_uri = "postgresql://nrjdztyzcfvwlk:d767f32cd3f5645fb1dbf2322b6b5f93a3ba723cc625bcdc67f7cce3db369d16@ec2-44-199-9-102.compute-1.amazonaws.com:5432/d5i6c3pfolni3l"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 Base = declarative_base()
+engine = create_engine(db_uri)
+metadata = MetaData(engine)
+metadata.reflect()
+table = metadata.tables["user_instrument"]
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class ConnectionStatus(enum.Enum):
     APPROVED = "Approved"
@@ -33,8 +39,12 @@ class PlaysOrNeeds(enum.Enum):
 
 user_instrument = db.Table('user_instrument', Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-    db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True),
-    db.Column('plays_or_needs', db.Enum(PlaysOrNeeds))
+    db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True)
+)
+
+user_needs_instrument = db.Table('user_needs_instrument', Base.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('needs_instrument_id', db.Integer, db.ForeignKey('needs_instrument.id'), primary_key=True)
 )
 
 user_genre = db.Table('user_genre', Base.metadata,
@@ -57,7 +67,8 @@ class User(Base):
     about = db.Column(db.String(255))
     zipcode = db.Column(db.String(255))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
-    instruments = db.relationship('Instrument', secondary=user_instrument, lazy='select', backref=db.backref('users', lazy=True))
+    instruments = db.relationship('Instrument', secondary=user_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
+    needs_instruments = db.relationship('NeedsInstrument', secondary=user_needs_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
     genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
     connections = db.relationship('User', secondary=user_connection, primaryjoin=id == user_connection.c.user_id, secondaryjoin=id == user_connection.c.friend_id, lazy='dynamic', backref=db.backref('users', lazy=True))
 
@@ -70,6 +81,15 @@ class User(Base):
 
 class Instrument(Base):
     __tablename__ = "instrument"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, name):
+        self.name = name
+
+class NeedsInstrument(Base):
+    __tablename__ = "needs_instrument"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
@@ -139,8 +159,9 @@ def create_user():
 def create_instrument():
     name = request.json.get('name', '')
     instrument = Instrument(name=name)
-
+    needs_instrument = NeedsInstrument(name=name)
     db.session.add(instrument)
+    db.session.add(needs_instrument)
     db.session.commit()
     return instrument_schema.jsonify(instrument)
 
@@ -155,15 +176,16 @@ def create_genre():
 
 @app.route('/users/<int:user_id>/instruments/<int:instrument_id>', methods=['POST'])
 def create_user_instrument(user_id, instrument_id):
-    plays_or_needs = request.json.get('plays_or_needs', '')
-    # data = user_instrument(user_id=user_id, instrument_id=instrument_id, plays_or_needs=plays_or_needs)
-
-    # db.session.add(data)
-
-    ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id, plays_or_needs=plays_or_needs)
+    ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id)
     db.engine.execute(ins)
     db.session.commit()
-    breakpoint()
+    return user_instrument_schema.jsonify(ins)
+
+@app.route('/users/<int:user_id>/needs_instruments/<int:instrument_id>', methods=['POST'])
+def create_user_needs_instrument(user_id, instrument_id):
+    ins = user_needs_instrument.insert().values(user_id=user_id, instrument_id=instrument_id)
+    db.engine.execute(ins)
+    db.session.commit()
     return user_instrument_schema.jsonify(ins)
 
 

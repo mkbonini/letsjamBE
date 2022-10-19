@@ -15,13 +15,13 @@ from sqlalchemy.orm import relationship, Session, sessionmaker
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-db_uri = "postgresql://mgdeiuhjogmlzz:0a44187da32e2c27267fa407dbd2e9370d19c5c00137900902273076c9f27737@ec2-44-209-24-62.compute-1.amazonaws.com:5432/d9e64hhn0dh9ou"
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+db_url = "postgresql://mgdeiuhjogmlzz:0a44187da32e2c27267fa407dbd2e9370d19c5c00137900902273076c9f27737@ec2-44-209-24-62.compute-1.amazonaws.com:5432/d9e64hhn0dh9ou"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 Base = declarative_base()
-engine = create_engine(db_uri)
+engine = create_engine(db_url)
 metadata = MetaData(engine)
 metadata.reflect()
 # table = metadata.tables["user_instrument"]

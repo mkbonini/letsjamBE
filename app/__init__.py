@@ -57,7 +57,7 @@ class User(Base):
     about = db.Column(db.String(255))
     zipcode = db.Column(db.String(255))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
-    instruments = db.relationship('Instrument', secondary=user_instrument, lazy='dynamic', backref=db.backref('users', lazy=True))
+    instruments = db.relationship('Instrument', secondary=user_instrument, lazy='select', backref=db.backref('users', lazy=True))
     genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
     connections = db.relationship('User', secondary=user_connection, primaryjoin=id == user_connection.c.user_id, secondaryjoin=id == user_connection.c.friend_id, lazy='dynamic', backref=db.backref('users', lazy=True))
 
@@ -103,12 +103,23 @@ class InstrumentSchema(ma.SQLAlchemyAutoSchema):
 instrument_schema = InstrumentSchema()
 instruments_schema = InstrumentSchema(many=True)
 
+class UserInstrumentSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        table = user_instrument
 
+user_instrument_schema = UserInstrumentSchema()
+
+class GenreSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Genre
+
+genre_schema = GenreSchema()
+genres_schema = GenreSchema(many=True)
 
 
 @app.route('/users/<int:user_id>/')
 def show_user(user_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     return user_schema.jsonify(user)
 
 @app.route('/users/', methods=['POST'])
@@ -133,6 +144,27 @@ def create_instrument():
     db.session.commit()
     return instrument_schema.jsonify(instrument)
 
+@app.route('/genres/', methods=['POST'])
+def create_genre():
+    name = request.json.get('name', '')
+    genre = Genre(name=name)
+
+    db.session.add(genre)
+    db.session.commit()
+    return genre_schema.jsonify(genre)
+
+@app.route('/users/<int:user_id>/instruments/<int:instrument_id>', methods=['POST'])
+def create_user_instrument(user_id, instrument_id):
+    plays_or_needs = request.json.get('plays_or_needs', '')
+    # data = user_instrument(user_id=user_id, instrument_id=instrument_id, plays_or_needs=plays_or_needs)
+
+    # db.session.add(data)
+
+    ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id, plays_or_needs=plays_or_needs)
+    db.engine.execute(ins)
+    db.session.commit()
+    breakpoint()
+    return user_instrument_schema.jsonify(ins)
 
 
 from app import routes

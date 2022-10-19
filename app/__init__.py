@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship, Session, sessionmaker
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-db_uri = "postgresql://nrjdztyzcfvwlk:d767f32cd3f5645fb1dbf2322b6b5f93a3ba723cc625bcdc67f7cce3db369d16@ec2-44-199-9-102.compute-1.amazonaws.com:5432/d5i6c3pfolni3l"
+db_uri = "postgres://mgdeiuhjogmlzz:0a44187da32e2c27267fa407dbd2e9370d19c5c00137900902273076c9f27737@ec2-44-209-24-62.compute-1.amazonaws.com:5432/d9e64hhn0dh9ou"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)

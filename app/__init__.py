@@ -15,13 +15,13 @@ from sqlalchemy.orm import relationship, Session, sessionmaker
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-db_url = "postgresql://mgdeiuhjogmlzz:0a44187da32e2c27267fa407dbd2e9370d19c5c00137900902273076c9f27737@ec2-44-209-24-62.compute-1.amazonaws.com:5432/d9e64hhn0dh9ou"
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+db_uri = "postgresql://mgdeiuhjogmlzz:0a44187da32e2c27267fa407dbd2e9370d19c5c00137900902273076c9f27737@ec2-44-209-24-62.compute-1.amazonaws.com:5432/d9e64hhn0dh9ou"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 Base = declarative_base()
-engine = create_engine(db_url)
+engine = create_engine(db_uri)
 metadata = MetaData(engine)
 metadata.reflect()
 # table = metadata.tables["user_instrument"]
@@ -37,28 +37,28 @@ class PlaysOrNeeds(enum.Enum):
     PLAYS = "Plays"
     NEEDS = "Needs"
 
-user_instrument = db.Table('user_instrument', Base.metadata,
+user_instrument = db.Table('user_instrument',# Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('instrument_id', db.Integer, db.ForeignKey('instrument.id'), primary_key=True)
 )
 
-user_needs_instrument = db.Table('user_needs_instrument', Base.metadata,
+user_needs_instrument = db.Table('user_needs_instrument',#Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('needs_instrument_id', db.Integer, db.ForeignKey('needs_instrument.id'), primary_key=True)
 )
 
-user_genre = db.Table('user_genre', Base.metadata,
+user_genre = db.Table('user_genre',#Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True)
 )
 
-user_connection = db.Table('user_connection', Base.metadata,
+user_connection = db.Table('user_connection', #Base.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('friend_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('status', db.Enum(ConnectionStatus))
 )
 
-class User(Base):
+class User(db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -79,7 +79,7 @@ class User(Base):
         self.about = about
         self.zipcode = zipcode
 
-class Instrument(Base):
+class Instrument(db.Model):
     __tablename__ = "instrument"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -88,7 +88,7 @@ class Instrument(Base):
     def __init__(self, name):
         self.name = name
 
-class NeedsInstrument(Base):
+class NeedsInstrument(db.Model):
     __tablename__ = "needs_instrument"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -98,7 +98,7 @@ class NeedsInstrument(Base):
         self.name = name
 
 
-class Genre(Base):
+class Genre(db.Model):
     __tablename__ = "genre"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)

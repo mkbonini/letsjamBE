@@ -24,7 +24,7 @@ Base = declarative_base()
 engine = create_engine(db_uri)
 metadata = MetaData(engine)
 metadata.reflect()
-# table = metadata.tables["user_instrument"]
+connections_table = metadata.tables["user_connection"]
 Session = sessionmaker(bind=engine)
 session = Session()
 

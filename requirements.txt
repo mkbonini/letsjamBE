@@ -5,3 +5,4 @@ pytest
 flask-marshmallow
 marshmallow-sqlalchemy
 gunicorn
+marshmallow-jsonapi

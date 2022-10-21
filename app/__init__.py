@@ -10,6 +10,7 @@ from flask_marshmallow import Marshmallow
 from sqlalchemy import create_engine, MetaData, Integer, ForeignKey, String, Column, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, Session, sessionmaker
+from marshmallow_jsonapi import fields, Schema
 
 
 app = Flask(__name__)
@@ -67,7 +68,7 @@ class User(db.Model):
     about = db.Column(db.String(255))
     zipcode = db.Column(db.String(255))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
-    instruments = db.relationship('Instrument', secondary=user_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
+    instruments = db.relationship('Instrument', secondary=user_instrument,  lazy='select', backref=db.backref('users', lazy=True))
     needs_instruments = db.relationship('NeedsInstrument', secondary=user_needs_instrument,  lazy='joined', backref=db.backref('users', lazy=True))
     genres = db.relationship('Genre', secondary=user_genre, lazy='dynamic', backref=db.backref('users', lazy=True))
     connections = db.relationship('User', secondary=user_connection, primaryjoin=id == user_connection.c.user_id, secondaryjoin=id == user_connection.c.friend_id, lazy='dynamic', backref=db.backref('users', lazy=True))
@@ -109,19 +110,38 @@ class Genre(db.Model):
 
 
 
-class UserSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = User
+class UserSchema(Schema):
+    id = fields.Str(dump_only=True)
+    name = fields.Str()
+    display_email = fields.Str()
+    about = fields.Str()
+    zipcode = fields.Str()
+    picture_url = fields.Str()
+    instruments = fields.Nested(lambda: InstrumentSchema(only=("name","id"), many=True))
+    # instruments = fields.Relationship(
+    #     related_url = "/users/(user_id)/instruments",
+    #     related_url_kwargs = {"user_id": "<id>"},
+    #     many=True,
+    #     include_resource_linkage=True,
+    #     type_ = "instruments",
+    #     schema = "InstrumentSchema",
+    # )
 
-user_schema = UserSchema()
-users_schema = UserSchema(many=True)
-
-class InstrumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = Instrument
+        # model = User
+        type_ = "user"
+        strict = True
+
+class InstrumentSchema(Schema):
+    id = fields.Str(dump_only=True)
+    name = fields.Str()
+    class Meta:
+        # model = Instrument
+        type_ = "instrument"
 
 instrument_schema = InstrumentSchema()
 instruments_schema = InstrumentSchema(many=True)
+
 
 class UserInstrumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -140,7 +160,9 @@ genres_schema = GenreSchema(many=True)
 @app.route('/users/<int:user_id>/')
 def show_user(user_id):
     user = db.session.get(User, user_id)
-    return user_schema.jsonify(user)
+    # breakpoint()
+    return UserSchema().dump(user)
+    # return user_schema.jsonify(user)
 
 @app.route('/users/', methods=['POST'])
 def create_user():
@@ -186,6 +208,11 @@ def create_user_needs_instrument(user_id, instrument_id):
     db.engine.execute(ins)
     db.session.commit()
     return user_instrument_schema.jsonify(ins)
+
+@app.route('/users/<int:user_id>/instruments', methods=['GET'])
+def get_user_instruments(user_id):
+    user = db.session.get(User, user_id)
+    return InstrumentSchema(many=True).dump(user.instruments)
 
 
 from app import routes

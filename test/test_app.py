@@ -1,4 +1,4 @@
-from app import app, User, Instrument
+from app import app, User, Instrument, NeedsInstrument, Genre
 import pytest
 
 def test_always_passes():
@@ -16,4 +16,21 @@ def test_new_user():
 def test_new_instrument():
     instrument = Instrument('Clarinet')
     assert instrument.name == 'Clarinet'
-   
+
+
+def test_needs_instrument():
+    needs_instrument = NeedsInstrument('Piano')
+    assert needs_instrument.name == 'Piano'
+
+# class NeedsInstrument(db.Model):
+#     __tablename__ = "needs_instrument"
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String)
+#     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+#    class Instrument(db.Model):
+#     __tablename__ = "instrument"
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String)
+#     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+

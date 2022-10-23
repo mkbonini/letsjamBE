@@ -11,9 +11,11 @@ from sqlalchemy import create_engine, MetaData, Integer, ForeignKey, String, Col
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, Session, sessionmaker
 from marshmallow_jsonapi import fields, Schema
+from flask_cors import CORS
 
 
 app = Flask(__name__)
+CORS(app)
 app.config ['JSON_SORT_KEYS'] = False
 
 basedir = os.path.abspath(os.path.dirname(__file__))

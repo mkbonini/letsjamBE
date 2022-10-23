@@ -170,7 +170,6 @@ class UserConnectionsSchema(Schema):
 
 @app.route('/api/v1/users/<int:user_id>/', methods=["GET", "DELETE"])
 def show_user(user_id):
-    # user = db.session.get(User, user_id)
     if request.method == "GET":
         user = db.session.get(User, user_id)
         return UserSchema().dump(user)
@@ -179,7 +178,6 @@ def show_user(user_id):
         db.session.delete(user)
         db.session.commit()
         return UserSchema().dump(user)
-    # breakpoint()
     # return user_schema.jsonify(user)
 
 @app.route('/api/v1/users/<int:user_id>/connections')

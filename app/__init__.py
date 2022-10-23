@@ -139,7 +139,6 @@ class NeedsInstrumentSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Str(dump_only=True)
     name = fields.Str()
     class Meta:
-        # model = Instrument
         type_ = "needs_instrument"
 
 instrument_schema = InstrumentSchema()

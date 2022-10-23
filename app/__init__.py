@@ -178,7 +178,7 @@ def show_user(user_id):
         db.session.delete(user)
         db.session.commit()
         return "User successfully deleted"
-        
+
     if request.method == "PATCH":
         body = request.get_json()
         if 'name' in body:
@@ -214,10 +214,7 @@ def show_user_connections(user_id):
     connection_list = connection_list + session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
     for conns in connection_list:
         connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
-
-
     return UserSchema().dump(user)
-    # return user_schema.jsonify(user)
 
 @app.route('/api/v1/users/', methods=['POST'])
 def create_user():

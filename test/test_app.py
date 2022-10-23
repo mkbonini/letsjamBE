@@ -22,6 +22,10 @@ def test_needs_instrument():
     needs_instrument = NeedsInstrument('Piano')
     assert needs_instrument.name == 'Piano'
 
+def test_new_genre():
+    genre = Genre('Jazz')
+    assert genre.name == 'Jazz'
+
 # class NeedsInstrument(db.Model):
 #     __tablename__ = "needs_instrument"
 #     id = db.Column(db.Integer, primary_key=True)

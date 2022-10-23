@@ -12,7 +12,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, Session, sessionmaker
 from marshmallow_jsonapi import fields, Schema
 
-
 app = Flask(__name__)
 app.config ['JSON_SORT_KEYS'] = False
 

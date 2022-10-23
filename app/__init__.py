@@ -128,7 +128,7 @@ class UserSchema(Schema):
         strict = True
         ordered = True
 
-class ConnectedUserSchema(Schema):
+class ConnectedUserSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Str(dump_only=True)
     name = fields.Str()
     display_email = fields.Str()
@@ -139,6 +139,56 @@ class ConnectedUserSchema(Schema):
     needs_instruments = fields.Nested(lambda: NeedsInstrumentSchema(only=("name","id"), many=True))
     genres = fields.Nested(lambda: GenreSchema(only=("name","id"), many=True))
 
+    class Meta:
+        # model = User
+        type_ = "user"
+        strict = True
+        ordered = True
+
+class RequestedUserSchema(ma.SQLAlchemyAutoSchema):
+    id = fields.Str(dump_only=True)
+    name = fields.Str()
+    about = fields.Str()
+    picture_url = fields.Str()
+    instruments = fields.Nested(lambda: InstrumentSchema(only=("name","id"), many=True))
+    needs_instruments = fields.Nested(lambda: NeedsInstrumentSchema(only=("name","id"), many=True))
+    genres = fields.Nested(lambda: GenreSchema(only=("name","id"), many=True))
+
+    class Meta:
+        # model = User
+        type_ = "user"
+        strict = True
+        ordered = True
+
+class UserConnectionsSchema(Schema):
+    id = fields.Str(dump_only=True)
+    connections_pending = fields.Method("get_connections_pending")
+    requests_pending = fields.Method("get_requests_pending")
+    connections = fields.Method("get_connections")
+
+    def get_connections_pending(self, user):
+        pending_connections = []
+        connection_list = session.query(user_connection).filter_by(status = 'PENDING', user_id = user.id).all()
+        for conns in connection_list:
+            pending_connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
+        return RequestedUserSchema(many=True).dump(pending_connections)
+
+    def get_connections(self, user):
+        connections = []
+        connection_list = session.query(user_connection).filter_by(status = 'APPROVED', user_id = user.id).all()
+        for conns in connection_list:
+            connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
+        connection_list = session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
+        for conns in connection_list:
+            connections.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
+        return ConnectedUserSchema(many=True).dump(connections)
+
+    def get_requests_pending(self, user):
+        pending_requests = []
+        connection_list = session.query(user_connection).filter_by(status = 'PENDING', friend_id = user.id).all()
+        for conns in connection_list:
+            pending_requests.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
+        return RequestedUserSchema(many=True).dump(pending_requests)
     class Meta:
         # model = User
         type_ = "user"
@@ -179,11 +229,6 @@ class GenreSchema(ma.SQLAlchemyAutoSchema):
 genre_schema = GenreSchema()
 genres_schema = GenreSchema(many=True)
 
-class UserConnectionsSchema(Schema):
-    id = fields.Str(dump_only=True)
-    name = fields.Str()
-    class Meta:
-        model = Genre
 
 @app.route('/api/v1/users/<int:user_id>/', methods=["GET", "DELETE", "PATCH"])
 def show_user(user_id):
@@ -219,24 +264,7 @@ def show_user(user_id):
 @app.route('/api/v1/users/<int:user_id>/connections')
 def show_user_connections(user_id):
     user = db.session.get(User, user_id)
-    pending_connections = []
-    connections = []
-    pending_requests = []
-    connection_list = session.query(user_connection).filter_by(status = 'PENDING', user_id = user.id).all()
-    for conns in connection_list:
-        pending_connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
-    connection_list = session.query(user_connection).filter_by(status = 'PENDING', friend_id = user.id).all()
-    for conns in connection_list:
-        pending_requests.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
-    connection_list = session.query(user_connection).filter_by(status = 'APPROVED', user_id = user.id).all()
-    for conns in connection_list:
-        connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
-    connection_list = session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
-    for conns in connection_list:
-        connections.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
-
-    return UserSchema().dump(user)
-    # return user_schema.jsonify(user)
+    return UserConnectionsSchema().dump(user)
 
 @app.route('/api/v1/users/', methods=['POST'])
 def create_user():

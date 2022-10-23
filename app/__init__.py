@@ -98,7 +98,6 @@ class NeedsInstrument(db.Model):
     def __init__(self, name):
         self.name = name
 
-
 class Genre(db.Model):
     __tablename__ = "genre"
     id = db.Column(db.Integer, primary_key=True)
@@ -107,8 +106,6 @@ class Genre(db.Model):
 
     def __init__(self, name):
         self.name = name
-
-
 
 class UserSchema(Schema):
     id = fields.Str(dump_only=True)
@@ -142,7 +139,6 @@ class NeedsInstrumentSchema(ma.SQLAlchemyAutoSchema):
 
 instrument_schema = InstrumentSchema()
 instruments_schema = InstrumentSchema(many=True)
-
 
 class UserInstrumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

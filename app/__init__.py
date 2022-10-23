@@ -128,6 +128,23 @@ class UserSchema(Schema):
         strict = True
         ordered = True
 
+class ConnectedUserSchema(Schema):
+    id = fields.Str(dump_only=True)
+    name = fields.Str()
+    display_email = fields.Str()
+    about = fields.Str()
+    zipcode = fields.Str()
+    picture_url = fields.Str()
+    instruments = fields.Nested(lambda: InstrumentSchema(only=("name","id"), many=True))
+    needs_instruments = fields.Nested(lambda: NeedsInstrumentSchema(only=("name","id"), many=True))
+    genres = fields.Nested(lambda: GenreSchema(only=("name","id"), many=True))
+
+    class Meta:
+        # model = User
+        type_ = "user"
+        strict = True
+        ordered = True
+
 class InstrumentSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Str(dump_only=True)
     name = fields.Str()
@@ -212,10 +229,11 @@ def show_user_connections(user_id):
     for conns in connection_list:
         pending_requests.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
     connection_list = session.query(user_connection).filter_by(status = 'APPROVED', user_id = user.id).all()
-    connection_list = connection_list + session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
     for conns in connection_list:
         connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
-
+    connection_list = session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
+    for conns in connection_list:
+        connections.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
 
     return UserSchema().dump(user)
     # return user_schema.jsonify(user)
@@ -282,12 +300,10 @@ def create_user_connection(user_id, friend_id):
 @app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>', methods=['PATCH'])
 def update_user_connection(user_id, friend_id):
     status_input = request.json.get('status', '')
-    connection = session.query(user_connection).filter_by(user_id = user_id, friend_id = friend_id).all()[0]
-    # connection.update({connection.status: status_input})
-    user_connection.update().values(status=status_input).where(user_connection.c.user_id==user_id).where( user_connection.c.friend_id==friend_id    )
-    # ins = user_connection.update().values(user_id=user_id, friend_id=friend_id, status=status)
-    # db.engine.execute(ins)
-    db.session.commit()
+    u = connections_table.update()
+    u = u.values({"status": status_input})
+    u = u.where(connections_table.c.user_id == user_id, connections_table.c.friend_id == friend_id)
+    engine.execute(u)
     return "connection updated"
 
 @app.route('/api/v1/users/<int:user_id>/instruments', methods=['GET'])

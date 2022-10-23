@@ -1,4 +1,4 @@
-from app import app, User
+from app import app, User, Instrument
 import pytest
 
 def test_always_passes():
@@ -12,3 +12,8 @@ def test_new_user():
     assert user.about == 'I want to jam!'
     assert user.zipcode == '80000'
 
+
+def test_new_instrument():
+    instrument = Instrument('Clarinet')
+    assert instrument.name == 'Clarinet'
+   

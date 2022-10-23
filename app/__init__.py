@@ -177,8 +177,8 @@ def show_user(user_id):
         user = db.session.get(User, user_id)
         db.session.delete(user)
         db.session.commit()
-        return UserSchema().dump(user)
-
+        return "User successfully deleted"
+        
     if request.method == "PATCH":
         body = request.get_json()
         if 'name' in body:

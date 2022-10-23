@@ -168,17 +168,36 @@ class UserConnectionsSchema(Schema):
     class Meta:
         model = Genre
 
-@app.route('/api/v1/users/<int:user_id>/', methods=["GET", "DELETE"])
+@app.route('/api/v1/users/<int:user_id>/', methods=["GET", "DELETE", "PATCH"])
 def show_user(user_id):
     if request.method == "GET":
         user = db.session.get(User, user_id)
         return UserSchema().dump(user)
+
     if request.method == "DELETE":
         user = db.session.get(User, user_id)
         db.session.delete(user)
         db.session.commit()
         return UserSchema().dump(user)
-    # return user_schema.jsonify(user)
+
+    if request.method == "PATCH":
+        body = request.get_json()
+        if 'name' in body:
+            db.session.query(User).filter_by(id=user_id).update(dict(name=body['name']))
+            db.session.commit()
+        if 'display_email' in body:
+            db.session.query(User).filter_by(id=user_id).update(dict(display_email=body['display_email']))
+            db.session.commit()
+        if 'picture_url' in body:
+            db.session.query(User).filter_by(id=user_id).update(dict(picture_url=body['picture_url']))
+            db.session.commit()
+        if 'about' in body:
+            db.session.query(User).filter_by(id=user_id).update(dict(about=body['about']))
+            db.session.commit()
+        if 'zipcode' in body:
+            db.session.query(User).filter_by(id=user_id).update(dict(zipcode=body['zipcode']))
+            db.session.commit()
+        return "User updated"
 
 @app.route('/api/v1/users/<int:user_id>/connections')
 def show_user_connections(user_id):
@@ -193,7 +212,7 @@ def show_user_connections(user_id):
     for conns in connection_list:
         pending_requests.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
     connection_list = session.query(user_connection).filter_by(status = 'APPROVED', user_id = user.id).all()
-    connection_list = connection_list + session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all() 
+    connection_list = connection_list + session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
     for conns in connection_list:
         connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
 
@@ -263,7 +282,7 @@ def create_user_connection(user_id, friend_id):
 @app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>', methods=['PATCH'])
 def update_user_connection(user_id, friend_id):
     status_input = request.json.get('status', '')
-    connection = session.query(user_connection).filter_by(user_id = user_id, friend_id = friend_id).all()[0] 
+    connection = session.query(user_connection).filter_by(user_id = user_id, friend_id = friend_id).all()[0]
     # connection.update({connection.status: status_input})
     user_connection.update().values(status=status_input).where(user_connection.c.user_id==user_id).where( user_connection.c.friend_id==friend_id    )
     # ins = user_connection.update().values(user_id=user_id, friend_id=friend_id, status=status)

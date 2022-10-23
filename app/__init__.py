@@ -264,6 +264,11 @@ def show_user(user_id):
             ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument.id)
             db.engine.execute(ins)
             db.session.commit()
+        if 'genre' in body:
+            genre = db.session.query(Genre).filter_by(name=body['genre']).first()
+            ins = user_genre.insert().values(user_id=user_id, genre_id=genre.id)
+            db.engine.execute(ins)
+            db.session.commit()
 
         return "User updated"
 

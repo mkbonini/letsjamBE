@@ -304,35 +304,35 @@ def create_genre():
     db.session.commit()
     return genre_schema.jsonify(genre)
 
-@app.route('/api/v1/users/<int:user_id>/instruments/<int:instrument_id>', methods=['POST'])
+@app.route('/api/v1/users/<int:user_id>/instruments/<int:instrument_id>/', methods=['POST'])
 def create_user_instrument(user_id, instrument_id):
     ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id)
     db.engine.execute(ins)
     db.session.commit()
     return "connection added"
 
-@app.route('/api/v1/users/<int:user_id>/needs_instruments/<int:needs_instrument_id>', methods=['POST'])
+@app.route('/api/v1/users/<int:user_id>/needs_instruments/<int:needs_instrument_id>/', methods=['POST'])
 def create_user_needs_instrument(user_id, needs_instrument_id):
     ins = user_needs_instrument.insert().values(user_id=user_id, needs_instrument_id=needs_instrument_id)
     db.engine.execute(ins)
     db.session.commit()
     return "connection added"
 
-@app.route('/api/v1/users/<int:user_id>/genres/<int:genre_id>', methods=['POST'])
+@app.route('/api/v1/users/<int:user_id>/genres/<int:genre_id>/', methods=['POST'])
 def create_user_genre(user_id, genre_id):
     ins = user_genre.insert().values(user_id=user_id, genre_id=genre_id)
     db.engine.execute(ins)
     db.session.commit()
     return "connection added"
 
-@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>', methods=['POST'])
+@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>/', methods=['POST'])
 def create_user_connection(user_id, friend_id):
     ins = user_connection.insert().values(user_id=user_id, friend_id=friend_id, status='PENDING')
     db.engine.execute(ins)
     db.session.commit()
     return "connection added"
 
-@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>', methods=['PATCH'])
+@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>/', methods=['PATCH'])
 def update_user_connection(user_id, friend_id):
     status_input = request.json.get('status', '')
     u = connections_table.update()
@@ -341,7 +341,7 @@ def update_user_connection(user_id, friend_id):
     engine.execute(u)
     return "connection updated"
 
-@app.route('/api/v1/users/<int:user_id>/instruments', methods=['GET'])
+@app.route('/api/v1/users/<int:user_id>/instruments/', methods=['GET'])
 def get_user_instruments(user_id):
     user = db.session.get(User, user_id)
     return InstrumentSchema(many=True).dump(user.instruments)

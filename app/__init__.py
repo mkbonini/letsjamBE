@@ -15,7 +15,7 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config ['JSON_SORT_KEYS'] = False
 
 basedir = os.path.abspath(os.path.dirname(__file__))

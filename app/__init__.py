@@ -13,7 +13,6 @@ from sqlalchemy.orm import relationship, Session, sessionmaker
 from marshmallow_jsonapi import fields, Schema
 from flask_cors import CORS
 
-
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config ['JSON_SORT_KEYS'] = False
@@ -101,7 +100,6 @@ class NeedsInstrument(db.Model):
     def __init__(self, name):
         self.name = name
 
-
 class Genre(db.Model):
     __tablename__ = "genre"
     id = db.Column(db.Integer, primary_key=True)
@@ -110,8 +108,6 @@ class Genre(db.Model):
 
     def __init__(self, name):
         self.name = name
-
-
 
 class UserSchema(Schema):
     id = fields.Str(dump_only=True)
@@ -208,12 +204,10 @@ class NeedsInstrumentSchema(ma.SQLAlchemyAutoSchema):
     id = fields.Str(dump_only=True)
     name = fields.Str()
     class Meta:
-        # model = Instrument
         type_ = "needs_instrument"
 
 instrument_schema = InstrumentSchema()
 instruments_schema = InstrumentSchema(many=True)
-
 
 class UserInstrumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -242,7 +236,7 @@ def show_user(user_id):
         user = db.session.get(User, user_id)
         db.session.delete(user)
         db.session.commit()
-        return UserSchema().dump(user)
+        return "User successfully deleted"
 
     if request.method == "PATCH":
         body = request.get_json()
@@ -277,7 +271,20 @@ def show_user(user_id):
 @app.route('/api/v1/users/<int:user_id>/connections')
 def show_user_connections(user_id):
     user = db.session.get(User, user_id)
-    return UserConnectionsSchema().dump(user)
+    pending_connections = []
+    connections = []
+    pending_requests = []
+    connection_list = session.query(user_connection).filter_by(status = 'PENDING', user_id = user.id).all()
+    for conns in connection_list:
+        pending_connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
+    connection_list = session.query(user_connection).filter_by(status = 'PENDING', friend_id = user.id).all()
+    for conns in connection_list:
+        pending_requests.append( session.query(User).filter_by(id=conns.user_id).all()[0] )
+    connection_list = session.query(user_connection).filter_by(status = 'APPROVED', user_id = user.id).all()
+    connection_list = connection_list + session.query(user_connection).filter_by(status = 'APPROVED', friend_id = user.id).all()
+    for conns in connection_list:
+        connections.append( session.query(User).filter_by(id=conns.friend_id).all()[0] )
+    return UserSchema().dump(user)
 
 @app.route('/api/v1/users/', methods=['POST'])
 def create_user():

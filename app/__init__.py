@@ -288,18 +288,6 @@ def show_user_connections(user_id):
     user = db.session.get(User, user_id)
     return UserConnectionsSchema().dump(user)
 
-# @app.route('/api/v1/users/', methods=['POST'])
-# def create_user():
-#     name = request.json.get('name', '')
-#     display_email = request.json.get('display_email', '')
-#     picture_url = request.json.get('picture_url', '')
-#     about = request.json.get('about', '')
-#     zipcode = request.json.get('zipcode', '')
-#     user = User(name=name, display_email=display_email, picture_url=picture_url, about=about, zipcode=zipcode)
-#     db.session.add(user)
-#     db.session.commit()
-#     return UserSchema().dump(user)
-
 @app.route('/api/v1/instruments/', methods=['POST'])
 def create_instrument():
     name = request.json.get('name', '')

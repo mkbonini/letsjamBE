@@ -261,6 +261,17 @@ def show_user(user_id):
         if 'zipcode' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(zipcode=body['zipcode']))
             db.session.commit()
+        if 'instrument' in body:
+            instrument = db.session.query(Instrument).filter_by(name=body['instrument']).first()
+            ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument.id)
+            db.engine.execute(ins)
+            db.session.commit()
+        if 'genre' in body:
+            genre = db.session.query(Genre).filter_by(name=body['genre']).first()
+            ins = user_genre.insert().values(user_id=user_id, genre_id=genre.id)
+            db.engine.execute(ins)
+            db.session.commit()
+
         return "User updated"
 
 @app.route('/api/v1/users/<int:user_id>/connections')

@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, MetaData, Integer, ForeignKey, String, Col
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, Session, sessionmaker
 from marshmallow_jsonapi import fields, Schema
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -255,6 +255,7 @@ def show_user(user_id):
         return "User successfully deleted"
 
     if request.method == "PATCH":
+        user = db.session.get(User, user_id)
         body = request.get_json()
         if 'name' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(name=body['name']))
@@ -273,16 +274,18 @@ def show_user(user_id):
             db.session.commit()
         if 'instrument' in body:
             instrument = db.session.query(Instrument).filter_by(name=body['instrument']).first()
-            ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument.id)
-            db.engine.execute(ins)
-            db.session.commit()
+            if len(session.query(user_instrument).filter_by(user_id=user_id, instrument_id=instrument.id).all()) == 0:
+                ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument.id)
+                db.engine.execute(ins)
+                db.session.commit()
         if 'genre' in body:
             genre = db.session.query(Genre).filter_by(name=body['genre']).first()
-            ins = user_genre.insert().values(user_id=user_id, genre_id=genre.id)
-            db.engine.execute(ins)
-            db.session.commit()
+            if len(session.query(user_genre).filter_by(user_id=user_id, genre_id=genre.id).all()) == 0:
+                ins = user_genre.insert().values(user_id=user_id, genre_id=genre.id)
+                db.engine.execute(ins)
+                db.session.commit()
 
-        return "User updated"
+        return UserSchema().dump(user)
 
 @app.route('/api/v1/users/<int:user_id>/connections/')
 def show_user_connections(user_id):

@@ -226,6 +226,30 @@ class GenreSchema(ma.SQLAlchemyAutoSchema):
 genre_schema = GenreSchema()
 genres_schema = GenreSchema(many=True)
 
+@app.cli.command('dbcreate')
+def dbcreate():
+    db.create_all()
+    print('Database created!')
+
+@app.cli.command('dbdrop')
+def dbdrop():
+    db.drop_all()
+    print('Database dropped!')
+
+@app.cli.command('dbseed')
+def dbseed():
+    user1 = User(name= "Bna Aennett",
+                 display_email= "BnaAennett@gmail.com",
+                 picture_url= "https://user-images.githubusercontent.com/98188684/197364951-4468b500-d855-4436-adad-5f46ccf363f0.png",
+                 about= "I love Angular!",
+                 zipcode= "00000"
+                )
+
+    db.session.add(user1)
+
+    db.session.commit()
+    print('Database seeded!')
+
 @app.route('/api/v1/users/', methods=["GET", "POST"])
 def index_user():
     if request.method == "GET":

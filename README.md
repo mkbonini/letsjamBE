@@ -1,6 +1,8 @@
 # Let's Jam - BE
 The RESTful API for Let's Jam 
 
+***
+
 ## Local Setup
 Assuming you have a mac/unix machine with `postgres 14.5`, `python 3.10.8` and `pip 22.2.2` installed:
 - run `pip3 install virtualenv` then `python3 -m venv env` to create a local environment for the project
@@ -14,7 +16,30 @@ Assuming you have a mac/unix machine with `postgres 14.5`, `python 3.10.8` and `
   <img width="667" alt="Database Schema" src="https://user-images.githubusercontent.com/16493270/197594695-d068d702-9a1b-472c-ab79-708b37f13686.png">
 </details>
 
+<details>
+  <summary><b> Create, Drop, and Seed the Database </b></summary>
+
+After Local Setup is complete:
+
+- type `flask dbcreate` to create the database
+- type `flask dbdrop` to drop the database
+- type `flask dbseed` to seed the database
+</details>
+
+<details>
+  <summary><b> Testing </b></summary>
+
+After Local Setup is complete:
+
+- type `pytest` to run tests
+- type `coverage run -m pytest` to generate % coverage
+- type `coverage report` to print the coverage report
+</details>
+
+***
+
 ## Endpoints
+
 <details>
   <summary><b> Show User </b> </summary>
   
@@ -203,7 +228,199 @@ connection updated
 
 </details>
 
+<details>
+  <summary><b> Search </b> </summary>
+  
+```shell
+Get https://letusjam.herokuapp.com/api/v1/users/1/search?radius=50&instrument=theremin
+Optional Query Params: radius, name, instrument, genre
+```
+---
+```
+{
+    "data": [
+        {
+            "type": "user",
+            "id": "9",
+            "attributes": {
+                "name": "Bory Cethune",
+                "about": "!!!MOAR COWBELL!!!",
+                "picture_url": "https://user-images.githubusercontent.com/98188684/197365266-ac37398a-f168-4768-8476-5e36b9a068aa.png",
+                "instruments": [
+                    {
+                        "name": "Piano",
+                        "id": "2"
+                    },
+                    {
+                        "name": "Theremin",
+                        "id": "9"
+                    }
+                ],
+                "needs_instruments": [],
+                "genres": [
+                    {
+                        "name": "Rock",
+                        "id": "2"
+                    }
+                ],
+                "distance": 0.0,
+                "connection_status": "nun"
+            }
+        },
+        {
+            "type": "user",
+            "id": "8",
+            "attributes": {
+                "name": "Hared Jardinger",
+                "about": "Classically trained baroque pianist who is baroque. :') I need some gigs y'all. ",
+                "picture_url": "https://user-images.githubusercontent.com/98188684/197365099-0e35cd61-7448-4e62-9005-087404014c99.png",
+                "instruments": [
+                    {
+                        "name": "Guitar",
+                        "id": "1"
+                    },
+                    {
+                        "name": "Piano",
+                        "id": "2"
+                    },
+                    {
+                        "name": "Drums",
+                        "id": "3"
+                    },
+                    {
+                        "name": "Flute",
+                        "id": "4"
+                    },
+                    {
+                        "name": "Clarinet",
+                        "id": "5"
+                    },
+                    {
+                        "name": "Bass",
+                        "id": "6"
+                    },
+                    {
+                        "name": "Triangle",
+                        "id": "7"
+                    },
+                    {
+                        "name": "Cowbell",
+                        "id": "8"
+                    },
+                    {
+                        "name": "Theremin",
+                        "id": "9"
+                    },
+                    {
+                        "name": "Saxophone",
+                        "id": "10"
+                    }
+                ],
+                "needs_instruments": [],
+                "genres": [
+                    {
+                        "name": "Rock",
+                        "id": "2"
+                    },
+                    {
+                        "name": "Jazz",
+                        "id": "10"
+                    }
+                ],
+                "distance": 13.54047013081921,
+                "connection_status": "pending"
+            }
+        },
+        {
+            "type": "user",
+            "id": "7",
+            "attributes": {
+                "name": "Bichael Monini",
+                "about": "Music is my life </3",
+                "picture_url": "https://user-images.githubusercontent.com/98188684/197365068-74fc732a-eb69-4a45-826c-6ff39a0af77d.png",
+                "instruments": [
+                    {
+                        "name": "Theremin",
+                        "id": "9"
+                    }
+                ],
+                "needs_instruments": [],
+                "genres": [
+                    {
+                        "name": "Pop",
+                        "id": "1"
+                    },
+                    {
+                        "name": "Rock",
+                        "id": "2"
+                    },
+                    {
+                        "name": "Blues",
+                        "id": "3"
+                    },
+                    {
+                        "name": "Electronic",
+                        "id": "4"
+                    },
+                    {
+                        "name": "Jam",
+                        "id": "5"
+                    },
+                    {
+                        "name": "Rap",
+                        "id": "6"
+                    },
+                    {
+                        "name": "Indie",
+                        "id": "7"
+                    },
+                    {
+                        "name": "Americana",
+                        "id": "8"
+                    },
+                    {
+                        "name": "Folk",
+                        "id": "9"
+                    },
+                    {
+                        "name": "Jazz",
+                        "id": "10"
+                    }
+                ],
+                "distance": 15.563325869097204,
+                "connection_status": "nun"
+            }
+        },
+        {
+            "type": "user",
+            "id": "1",
+            "attributes": {
+                "name": "Bna Aennett",
+                "about": "I love Angular!",
+                "picture_url": "https://user-images.githubusercontent.com/98188684/197364951-4468b500-d855-4436-adad-5f46ccf363f0.png",
+                "instruments": [
+                    {
+                        "name": "Theremin",
+                        "id": "9"
+                    }
+                ],
+                "needs_instruments": [],
+                "genres": [
+                    {
+                        "name": "Rock",
+                        "id": "2"
+                    }
+                ],
+                "distance": 22.93208462415554,
+                "connection_status": "nun"
+            }
+        }
+    ]
+}
+```
+  </details>
 
+***
 
 ## Backend Team
   - **Michael Bonini** - *Turing Student* - [GitHub Profile](https://github.com/mkbonini) - [LinkedIn](https://www.linkedin.com/in/michael-bonini-187157131/)

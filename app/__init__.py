@@ -11,8 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, Session, sessionmaker
 from marshmallow_jsonapi import fields, Schema
 from flask_cors import CORS, cross_origin
-from app import seeds
-from app import routes
+# from app import seeds
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -328,26 +327,41 @@ def create_user_genre(user_id, genre_id):
     db.session.commit()
     return "connection added"
 
-@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>/', methods=['POST'])
-def create_user_connection(user_id, friend_id):
-    ins = user_connection.insert().values(user_id=user_id, friend_id=friend_id, status='PENDING')
-    db.engine.execute(ins)
-    db.session.commit()
-    return "connection added"
 
-@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>/', methods=['PATCH'])
-def update_user_connection(user_id, friend_id):
-    status_input = request.json.get('status', '')
-    u = connections_table.update()
-    u = u.values({"status": status_input})
-    if len(session.query(user_connection).filter_by(friend_id = friend_id, user_id = user_id).all()) == 1:
+
+    if request.method == "DELETE":
+        user = db.session.get(User, user_id)
+        db.session.delete(user)
+        db.session.commit()
+        return "User successfully deleted"
+
+@app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>/', methods=['POST', 'PATCH', 'DELETE'])
+def crud_user_connection(user_id, friend_id):
+
+    if request.method == 'POST':
+        ins = user_connection.insert().values(user_id=user_id, friend_id=friend_id, status='PENDING')
+        db.engine.execute(ins)
+        db.session.commit()
+        return "connection added"
+
+    if request.method == 'PATCH':
+        status_input = request.json.get('status', '')
+        u = connections_table.update()
+        u = u.values({"status": status_input})
+        if len(session.query(user_connection).filter_by(friend_id = friend_id, user_id = user_id).all()) == 1:
+            u = u.where(connections_table.c.user_id == user_id, connections_table.c.friend_id == friend_id)
+        elif len(session.query(user_connection).filter_by(friend_id = user_id, user_id = friend_id).all()) == 1:
+            u = u.where(connections_table.c.user_id == friend_id, connections_table.c.friend_id == user_id)
+        else:
+            return "no connection pending"
+        engine.execute(u)
+        return "connection updated"
+
+    if request.method == 'DELETE':
+        u = connections_table.delete()
         u = u.where(connections_table.c.user_id == user_id, connections_table.c.friend_id == friend_id)
-    elif len(session.query(user_connection).filter_by(friend_id = user_id, user_id = friend_id).all()) == 1:
-        u = u.where(connections_table.c.user_id == friend_id, connections_table.c.friend_id == user_id)
-    else:
-        return "no connection pending"
-    engine.execute(u)
-    return "connection updated"
+        engine.execute(u)
+        return "connection deleted"
 
 @app.route('/api/v1/users/<int:user_id>/instruments/', methods=['GET'])
 def get_user_instruments(user_id):

@@ -472,12 +472,17 @@ def get_user_instruments(user_id):
 
 import pgeocode
 
+def zip_distance(zip1, zip2):
+    dist = pgeocode.GeoDistance('us')
+    return dist.query_postal_code(zip1, zip2)
+
 @app.route('/api/v1/users/<int:user_id>/search', methods=['GET'])
 
 def get_user_search(user_id):
     name_query = ''
     genre_query = ''
     instrument_query = ''
+    distance_query = 100
 
     if 'name' in request.args:
         name_query = request.args.get("name")
@@ -485,6 +490,8 @@ def get_user_search(user_id):
         instrument_query = request.args.get("instrument")
     if 'genre' in request.args:
         genre_query = request.args.get("genre")
+    if 'distance' in request.args:
+        distance_query = request.args.get("distance")
     user = db.session.get(User, user_id)
     users = session.query(User) \
         .filter(User.name.ilike(f'%{name_query}%')) \
@@ -494,6 +501,20 @@ def get_user_search(user_id):
         .filter(Genre.name.ilike(f'%{genre_query}%')) \
         .order_by(User.name) \
         .all()
-    return UserSchema(many=True).dump(users)
+
+    zip_hash = {}
+    for i in users:
+        zip_hash[i.id] = zip_distance(i.zipcode, user.zipcode)
+    for k, v in list(zip_hash.items()):
+        if zip_hash[k] > int(distance_query):
+            del zip_hash[k]
+    zip_hash = sorted(zip_hash.items(), key=lambda x:x[1])
+    dict(zip_hash)
+
+    users = []
+    for k, v in zip_hash:
+        users.append(User.query.get(k))
+
+    return UserSchema(many=True, exclude = ('display_email', 'zipcode')).dump(users)
 
 from app import routes

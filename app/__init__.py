@@ -24,7 +24,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-# Base = declarative_base()
 engine = create_engine(db_uri)
 metadata = MetaData(engine)
 metadata.reflect()

@@ -3,6 +3,7 @@ import enum
 from datetime import datetime
 import os
 import pgeocode
+import json
 from flask import request
 from marshmallow_jsonapi import fields, Schema
 from flask_sqlalchemy import SQLAlchemy

@@ -134,7 +134,7 @@ def crud_user_connection(user_id, friend_id):
         else:
             return "no connection pending"
         engine.execute(u)
-        return "connection updated"
+        return {"response": "connection updated"}
 
     if request.method == 'DELETE':
         u = connections_table.delete()
@@ -203,5 +203,5 @@ def get_user_search(user_id):
             i['attributes']['connection_status'] = 'rejected'
         else:
             i['attributes']['connection_status'] = 'nun'
-            
+
     return response

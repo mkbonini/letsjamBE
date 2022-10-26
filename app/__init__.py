@@ -3,6 +3,7 @@
 from flask import Flask
 import os
 import enum
+import pgeocode
 from flask import request
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -470,7 +471,9 @@ def get_user_instruments(user_id):
     user = db.session.get(User, user_id)
     return InstrumentSchema(many=True).dump(user.instruments)
 
-import pgeocode
+def zip_distance(zip1, zip2):
+    dist = pgeocode.GeoDistance('us')
+    return dist.query_postal_code(zip1, zip2)
 
 @app.route('/api/v1/users/<int:user_id>/search', methods=['GET'])
 
@@ -478,6 +481,7 @@ def get_user_search(user_id):
     name_query = ''
     genre_query = ''
     instrument_query = ''
+    distance_query = 100
 
     if 'name' in request.args:
         name_query = request.args.get("name")
@@ -485,6 +489,8 @@ def get_user_search(user_id):
         instrument_query = request.args.get("instrument")
     if 'genre' in request.args:
         genre_query = request.args.get("genre")
+    if 'distance' in request.args:
+        distance_query = request.args.get("distance")
     user = db.session.get(User, user_id)
     users = session.query(User) \
         .filter(User.name.ilike(f'%{name_query}%')) \
@@ -494,6 +500,34 @@ def get_user_search(user_id):
         .filter(Genre.name.ilike(f'%{genre_query}%')) \
         .order_by(User.name) \
         .all()
-    return UserSchema(many=True).dump(users)
+
+    zip_hash = {}
+    for i in users:
+        zip_hash[i.id] = zip_distance(i.zipcode, user.zipcode)
+    for k, v in list(zip_hash.items()):
+        if zip_hash[k] > int(distance_query):
+            del zip_hash[k]
+    zip_hash = dict(sorted(zip_hash.items(), key=lambda x:x[1]))
+
+    users = []
+    for k, v in list(zip_hash.items()):
+        users.append(User.query.get(k))
+
+    response = UserSchema(many=True, exclude = ('display_email', 'zipcode')).dump(users)
+    for i in response['data']:
+        i['attributes']['distance'] = zip_hash[int(i['id'])]
+        if len(session.query(user_connection).filter_by(status = 'APPROVED', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
+        or len(session.query(user_connection).filter_by(status = 'APPROVED', user_id = int(i['id']), friend_id = user.id).all()) == 1:
+            i['attributes']['connection_status'] = 'approved'
+        elif len(session.query(user_connection).filter_by(status = 'PENDING', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
+        or len(session.query(user_connection).filter_by(status = 'PENDING', user_id = int(i['id']), friend_id = user.id).all()) == 1:
+            i['attributes']['connection_status'] = 'pending'
+        elif len(session.query(user_connection).filter_by(status = 'REJECTED', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
+        or len(session.query(user_connection).filter_by(status = 'REJECTED', user_id = int(i['id']), friend_id = user.id).all()) == 1:
+            i['attributes']['connection_status'] = 'rejected'
+        else:
+            i['attributes']['connection_status'] = 'nun'
+            
+    return response
 
 from app import routes

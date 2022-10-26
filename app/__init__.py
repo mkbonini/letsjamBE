@@ -475,36 +475,25 @@ import pgeocode
 @app.route('/api/v1/users/<int:user_id>/search', methods=['GET'])
 
 def get_user_search(user_id):
-    name_query = request.args.get("name")
+    name_query = ''
+    genre_query = ''
+    instrument_query = ''
+
+    if 'name' in request.args:
+        name_query = request.args.get("name")
+    if 'instrument' in request.args:
+        instrument_query = request.args.get("instrument")
+    if 'genre' in request.args:
+        genre_query = request.args.get("genre")
+    user = db.session.get(User, user_id)
     users = session.query(User) \
         .filter(User.name.ilike(f'%{name_query}%')) \
-        .group_by() \
+        .join(User.instruments) \
+        .filter(Instrument.name.ilike(f'%{instrument_query}%')) \
+        .join(User.genres) \
+        .filter(Genre.name.ilike(f'%{genre_query}%')) \
+        .order_by(User.name) \
         .all()
     return UserSchema(many=True).dump(users)
 
-    # def zip_distance(zip1, zip2):
-    #     dist = pgeocode.GeoDistance('us')
-    #     return dist.query_postal_code(zip1, zip2)
-    
-    # user = db.session.get(User, user_id)
-    # breakpoint()
-
-    # distance_query = request.args.get("distance") 
-    # return session.query(User) \
-    #     .filter(zip_distance(user.zipcode, User.zipcode) < distance) \
-    #     .group_by() \
-    #     .all()
-
-    # instrument_query = request.args.get("instrument")
-    # return session.query(User) \
-    #     .filter_by(instruments = instrument_query) \
-    #     .group_by() \
-    #     .all()
-    # genre_query = request.args.get("genre")
-    # return session.query(User) \
-    #     .joins(User.genres) \
-    #     .filter(genre.name == genre_query) \
-    #     .group_by() \
-    #     .all()
-    # user_zip = user.zipcode
 from app import routes

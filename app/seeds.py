@@ -1,4 +1,4 @@
-
+from app import *
 
 @app.cli.command('dbcreate')
 def dbcreate():

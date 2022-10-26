@@ -7,3 +7,4 @@ marshmallow-sqlalchemy
 gunicorn
 marshmallow-jsonapi
 flask-cors
+pgeocode

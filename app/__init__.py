@@ -462,7 +462,12 @@ def update_user_connection(user_id, friend_id):
     status_input = request.json.get('status', '')
     u = connections_table.update()
     u = u.values({"status": status_input})
-    u = u.where(connections_table.c.user_id == user_id, connections_table.c.friend_id == friend_id)
+    if len(session.query(user_connection).filter_by(friend_id = friend_id, user_id = user_id).all()) == 1:
+        u = u.where(connections_table.c.user_id == user_id, connections_table.c.friend_id == friend_id)
+    elif len(session.query(user_connection).filter_by(friend_id = user_id, user_id = friend_id).all()) == 1:
+        u = u.where(connections_table.c.user_id == friend_id, connections_table.c.friend_id == user_id)
+    else:
+        return "no connection pending"
     engine.execute(u)
     return "connection updated"
 

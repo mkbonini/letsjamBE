@@ -1,7 +1,7 @@
 # Let's Jam - BE
 The RESTful API for Let's Jam 
 
-Visit the [frontend](https://github.com/Let-s-Jam/letsjamFE) repo.
+[Visit the frontend repo](https://github.com/Let-s-Jam/letsjamFE)
 
 [Deployed Site](https://letsjam.vercel.app/)
 

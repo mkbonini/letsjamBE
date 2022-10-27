@@ -1,6 +1,8 @@
 # Let's Jam - BE
 The RESTful API for Let's Jam 
 
+Visit the frontend["https://github.com/Let-s-Jam/letsjamFE"] repo.
+
 ***
 
 ## Local Setup

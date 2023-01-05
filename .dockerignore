@@ -1,0 +1,7 @@
+# flyctl launch added from .gitignore
+test/__pycache__
+**/app/__pycache__
+**/env
+**/coverage
+**/.pytest_cache
+**/test/__pycache__

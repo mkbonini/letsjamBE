@@ -15,7 +15,7 @@ from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app)
 app.config ['JSON_SORT_KEYS'] = False
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config

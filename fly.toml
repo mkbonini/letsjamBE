@@ -9,7 +9,7 @@ processes = []
   builder = "paketobuildpacks/builder:base"
 
 [deploy]
-  release_command = "flask dbseed"
+  #release_command = "flask dbseed"
 
 [env]
   PORT = "8080"

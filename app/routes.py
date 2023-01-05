@@ -177,31 +177,31 @@ def get_user_search(user_id):
         .order_by(User.name) \
         .all()
 
-    zip_hash = {}
-    for i in users:
-        zip_hash[i.id] = zip_distance(i.zipcode, user.zipcode)
-    for k, v in list(zip_hash.items()):
-        if zip_hash[k] > int(distance_query):
-            del zip_hash[k]
-    zip_hash = dict(sorted(zip_hash.items(), key=lambda x:x[1]))
+    # zip_hash = {}
+    # for i in users:
+    #     zip_hash[i.id] = zip_distance(i.zipcode, user.zipcode)
+    # for k, v in list(zip_hash.items()):
+    #     if zip_hash[k] > int(distance_query):
+    #         del zip_hash[k]
+    # zip_hash = dict(sorted(zip_hash.items(), key=lambda x:x[1]))
 
-    users = []
-    for k, v in list(zip_hash.items()):
-        users.append(User.query.get(k))
+    # users = []
+    # for k, v in list(zip_hash.items()):
+    #     users.append(User.query.get(k))
 
     response = UserSchema(many=True, exclude = ('display_email', 'zipcode')).dump(users)
-    for i in response['data']:
-        i['attributes']['distance'] = zip_hash[int(i['id'])]
-        if len(session.query(user_connection).filter_by(status = 'APPROVED', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
-        or len(session.query(user_connection).filter_by(status = 'APPROVED', user_id = int(i['id']), friend_id = user.id).all()) == 1:
-            i['attributes']['connection_status'] = 'approved'
-        elif len(session.query(user_connection).filter_by(status = 'PENDING', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
-        or len(session.query(user_connection).filter_by(status = 'PENDING', user_id = int(i['id']), friend_id = user.id).all()) == 1:
-            i['attributes']['connection_status'] = 'pending'
-        elif len(session.query(user_connection).filter_by(status = 'REJECTED', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
-        or len(session.query(user_connection).filter_by(status = 'REJECTED', user_id = int(i['id']), friend_id = user.id).all()) == 1:
-            i['attributes']['connection_status'] = 'rejected'
-        else:
-            i['attributes']['connection_status'] = 'nun'
+    # for i in response['data']:
+    #     # i['attributes']['distance'] = zip_hash[int(i['id'])]
+    #     if len(session.query(user_connection).filter_by(status = 'APPROVED', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
+    #     or len(session.query(user_connection).filter_by(status = 'APPROVED', user_id = int(i['id']), friend_id = user.id).all()) == 1:
+    #         i['attributes']['connection_status'] = 'approved'
+    #     elif len(session.query(user_connection).filter_by(status = 'PENDING', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
+    #     or len(session.query(user_connection).filter_by(status = 'PENDING', user_id = int(i['id']), friend_id = user.id).all()) == 1:
+    #         i['attributes']['connection_status'] = 'pending'
+    #     elif len(session.query(user_connection).filter_by(status = 'REJECTED', friend_id = int(i['id']), user_id = user.id).all()) == 1 \
+    #     or len(session.query(user_connection).filter_by(status = 'REJECTED', user_id = int(i['id']), friend_id = user.id).all()) == 1:
+    #         i['attributes']['connection_status'] = 'rejected'
+    #     else:
+    #         i['attributes']['connection_status'] = 'nun'
 
     return response

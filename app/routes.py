@@ -13,7 +13,7 @@ def index_user():
         zipcode = request.json.get('zipcode', '')
         user = User(name=name, display_email=display_email, picture_url=picture_url, about=about, zipcode=zipcode)
         db.session.add(user)
-        db.session.commit()
+        #db.session.commit()
         return UserSchema().dump(user)
 
 @app.route('/api/v1/users/<int:user_id>/', methods=["GET", "DELETE", "PATCH"])
@@ -25,7 +25,7 @@ def show_user(user_id):
     if request.method == "DELETE":
         user = db.session.get(User, user_id)
         db.session.delete(user)
-        db.session.commit()
+        #db.session.commit()
         return "User successfully deleted"
 
     if request.method == "PATCH":
@@ -33,31 +33,31 @@ def show_user(user_id):
         body = request.get_json()
         if 'name' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(name=body['name']))
-            db.session.commit()
+            #db.session.commit()
         if 'display_email' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(display_email=body['display_email']))
-            db.session.commit()
+            #db.session.commit()
         if 'picture_url' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(picture_url=body['picture_url']))
-            db.session.commit()
+            #db.session.commit()
         if 'about' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(about=body['about']))
-            db.session.commit()
+            #db.session.commit()
         if 'zipcode' in body:
             db.session.query(User).filter_by(id=user_id).update(dict(zipcode=body['zipcode']))
-            db.session.commit()
+            #db.session.commit()
         if 'instrument' in body:
             instrument = db.session.query(Instrument).filter_by(name=body['instrument']).first()
             if len(session.query(user_instrument).filter_by(user_id=user_id, instrument_id=instrument.id).all()) == 0:
                 ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument.id)
                 db.engine.execute(ins)
-                db.session.commit()
+                #db.session.commit()
         if 'genre' in body:
             genre = db.session.query(Genre).filter_by(name=body['genre']).first()
             if len(session.query(user_genre).filter_by(user_id=user_id, genre_id=genre.id).all()) == 0:
                 ins = user_genre.insert().values(user_id=user_id, genre_id=genre.id)
                 db.engine.execute(ins)
-                db.session.commit()
+                #db.session.commit()
 
         return UserSchema().dump(user)
 
@@ -73,7 +73,7 @@ def create_instrument():
     needs_instrument = NeedsInstrument(name=name)
     db.session.add(instrument)
     db.session.add(needs_instrument)
-    db.session.commit()
+    #db.session.commit()
     return instrument_schema.jsonify(instrument)
 
 @app.route('/api/v1/genres/', methods=['POST'])
@@ -82,28 +82,28 @@ def create_genre():
     genre = Genre(name=name)
 
     db.session.add(genre)
-    db.session.commit()
+    #db.session.commit()
     return genre_schema.jsonify(genre)
 
 @app.route('/api/v1/users/<int:user_id>/instruments/<int:instrument_id>/', methods=['POST'])
 def create_user_instrument(user_id, instrument_id):
     ins = user_instrument.insert().values(user_id=user_id, instrument_id=instrument_id)
     db.engine.execute(ins)
-    db.session.commit()
+    #db.session.commit()
     return "connection added"
 
 @app.route('/api/v1/users/<int:user_id>/needs_instruments/<int:needs_instrument_id>/', methods=['POST'])
 def create_user_needs_instrument(user_id, needs_instrument_id):
     ins = user_needs_instrument.insert().values(user_id=user_id, needs_instrument_id=needs_instrument_id)
     db.engine.execute(ins)
-    db.session.commit()
+    #db.session.commit()
     return "connection added"
 
 @app.route('/api/v1/users/<int:user_id>/genres/<int:genre_id>/', methods=['POST'])
 def create_user_genre(user_id, genre_id):
     ins = user_genre.insert().values(user_id=user_id, genre_id=genre_id)
     db.engine.execute(ins)
-    db.session.commit()
+    #db.session.commit()
     return "connection added"
 
 
@@ -111,7 +111,7 @@ def create_user_genre(user_id, genre_id):
     if request.method == "DELETE":
         user = db.session.get(User, user_id)
         db.session.delete(user)
-        db.session.commit()
+        #db.session.commit()
         return "User successfully deleted"
 
 @app.route('/api/v1/users/<int:user_id>/connections/<int:friend_id>/', methods=['POST', 'PATCH', 'DELETE'])
@@ -120,7 +120,7 @@ def crud_user_connection(user_id, friend_id):
     if request.method == 'POST':
         ins = user_connection.insert().values(user_id=user_id, friend_id=friend_id, status='PENDING')
         db.engine.execute(ins)
-        db.session.commit()
+        #db.session.commit()
         return "connection added"
 
     if request.method == 'PATCH':
@@ -152,7 +152,6 @@ def zip_distance(zip1, zip2):
     return dist.query_postal_code(zip1, zip2)
 
 @app.route('/api/v1/users/<int:user_id>/search/', methods=['GET'])
-
 def get_user_search(user_id):
     name_query = ''
     genre_query = ''
@@ -167,7 +166,7 @@ def get_user_search(user_id):
         genre_query = request.args.get("genre")
     if 'distance' in request.args:
         distance_query = request.args.get("distance")
-    user = db.session.get(User, user_id)
+    # user = db.session.get(User, user_id)
     users = session.query(User) \
         .filter(User.name.ilike(f'%{name_query}%')) \
         .join(User.instruments) \

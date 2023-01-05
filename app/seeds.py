@@ -1,11 +1,10 @@
 from app import *
 
 @app.cli.command('dbdeploy')
-def dbcreate():
+def dbdeploy():
     db.drop_all()
     db.create_all()
-    dbseed()
-    print('Database created & seeded!')
+    print('Database recreated!')
 
 @app.cli.command('dbcreate')
 def dbcreate():
@@ -98,6 +97,28 @@ def dbseed():
     db.session.add(inst8)
     db.session.add(inst9)
     db.session.add(inst10)
+
+    needs_inst1 = NeedsInstrument(name= "Guitar")
+    needs_inst2 = NeedsInstrument(name= "Piano")
+    needs_inst3 = NeedsInstrument(name= "Drums")
+    needs_inst4 = NeedsInstrument(name= "Flute")
+    needs_inst5 = NeedsInstrument(name= "Clarinet")
+    needs_inst6 = NeedsInstrument(name= "Bass")
+    needs_inst7 = NeedsInstrument(name= "Triangle")
+    needs_inst8 = NeedsInstrument(name= "Cowbell")
+    needs_inst9 = NeedsInstrument(name= "Theremin")
+    needs_inst10 = NeedsInstrument(name= "Saxophone")
+
+    db.session.add(needs_inst1)
+    db.session.add(needs_inst2)
+    db.session.add(needs_inst3)
+    db.session.add(needs_inst4)
+    db.session.add(needs_inst5)
+    db.session.add(needs_inst6)
+    db.session.add(needs_inst7)
+    db.session.add(needs_inst8)
+    db.session.add(needs_inst9)
+    db.session.add(needs_inst10)
 
     genre1 = Genre(name= "Pop")
     genre2 = Genre(name= "Rock")

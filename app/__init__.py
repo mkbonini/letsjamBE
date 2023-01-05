@@ -27,9 +27,9 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 engine = create_engine(db_uri)
-# metadata = MetaData(engine)
-# metadata.reflect()
-# # connections_table = metadata.tables["user_connection"]
+metadata = MetaData(engine)
+metadata.reflect()
+connections_table = metadata.tables["user_connection"]
 Session = sessionmaker(bind=engine)
 session = Session()
 

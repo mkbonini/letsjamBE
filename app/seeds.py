@@ -1,5 +1,12 @@
 from app import *
 
+@app.cli.command('dbdeploy')
+def dbcreate():
+    db.drop_all()
+    db.create_all()
+    dbseed()
+    print('Database created & seeded!')
+
 @app.cli.command('dbcreate')
 def dbcreate():
     db.create_all()

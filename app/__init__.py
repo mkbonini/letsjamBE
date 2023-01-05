@@ -34,8 +34,14 @@ connections_table = metadata.tables["user_connection"]
 Session = sessionmaker(bind=engine)
 session = Session()
 
-from app.models import *
-from app.schemas import *
-from app.routes import *
-from app import routes
-from app import seeds
+try:
+  from app.models import *
+  from app.schemas import *
+  from app.routes import *
+  from app import routes
+  from app import seeds
+except:
+  session.rollback()
+  raise
+else:
+    session.commit()

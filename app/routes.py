@@ -151,7 +151,7 @@ def zip_distance(zip1, zip2):
     dist = pgeocode.GeoDistance('us')
     return dist.query_postal_code(zip1, zip2)
 
-@app.route('/api/v1/users/<int:user_id>/search/', methods=['GET'])
+@app.route('/api/v1/users/<int:user_id>/search', methods=['GET'])
 def get_user_search(user_id):
     name_query = ''
     genre_query = ''

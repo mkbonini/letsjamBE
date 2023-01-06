@@ -48,4 +48,9 @@ except:
   session.close_all()
   engine.dispose()
   raise
-    
+
+@app.teardown_request
+def teardown_request(exception):
+    if exception:
+        db.session.rollback()
+    db.session.remove()

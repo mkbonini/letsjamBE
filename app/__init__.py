@@ -21,8 +21,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-# db_uri = "postgresql://postgres:2npp51WDpjnxMdi@lets-jam-db.internal:5432"
-db_uri = "postgresql://postgres:2npp51WDpjnxMdi@lets-jam-db.fly.dev:5432"
+db_uri = "postgresql://postgres:2npp51WDpjnxMdi@lets-jam-db.internal:5432"
+# db_uri = "postgresql://postgres:2npp51WDpjnxMdi@lets-jam-db.fly.dev:5432"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)

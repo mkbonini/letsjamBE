@@ -167,14 +167,18 @@ def get_user_search(user_id):
     if 'distance' in request.args:
         distance_query = request.args.get("distance")
     # user = db.session.get(User, user_id)
-    users = session.query(User) \
-        .filter(User.name.ilike(f'%{name_query}%')) \
-        .join(User.instruments) \
-        .filter(Instrument.name.ilike(f'%{instrument_query}%')) \
-        .join(User.genres) \
-        .filter(Genre.name.ilike(f'%{genre_query}%')) \
-        .order_by(User.name) \
-        .all()
+    try:
+        users = session.query(User) \
+            .filter(User.name.ilike(f'%{name_query}%')) \
+            .join(User.instruments) \
+            .filter(Instrument.name.ilike(f'%{instrument_query}%')) \
+            .join(User.genres) \
+            .filter(Genre.name.ilike(f'%{genre_query}%')) \
+            .order_by(User.name) \
+            .all()
+    except:
+        session.rollback()
+        raise   
 
     # zip_hash = {}
     # for i in users:
@@ -202,5 +206,5 @@ def get_user_search(user_id):
     #         i['attributes']['connection_status'] = 'rejected'
     #     else:
     #         i['attributes']['connection_status'] = 'nun'
-
+    # breakpoint()
     return response

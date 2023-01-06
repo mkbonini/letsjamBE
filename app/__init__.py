@@ -40,7 +40,7 @@ try:
   from app.routes import *
   from app import routes
   from app import seeds
-  session.commit()
+  # session.commit()
   session.close_all()
   engine.dispose()
 except:
@@ -54,3 +54,4 @@ def teardown_request(exception):
     if exception:
         db.session.rollback()
     db.session.remove()
+    engine.dispose()

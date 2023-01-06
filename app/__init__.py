@@ -41,7 +41,11 @@ try:
   from app import routes
   from app import seeds
   session.commit()
+  session.close_all()
+  engine.dispose()
 except:
   session.rollback()
+  session.close_all()
+  engine.dispose()
   raise
     
